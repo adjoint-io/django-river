@@ -247,11 +247,21 @@ class InstanceWorkflowObject(object):
         )
 
     def _re_create_cycled_path(self, done_transition):
+        cycled_paths = set()
         old_transitions = self._get_transition_images([done_transition.destination_state.pk])
 
         iteration = done_transition.iteration + 1
         while old_transitions:
             for old_transition in old_transitions:
+                cycled_path = (
+                    old_transition.source_state,
+                    old_transition.destination_state,
+                )
+                if cycled_path in cycled_paths:
+                    return
+                else:
+                    cycled_paths.add(cycled_path)
+
                 cycled_transition = Transition.objects.create(
                     source_state=old_transition.source_state,
                     destination_state=old_transition.destination_state,
