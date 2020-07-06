@@ -252,14 +252,18 @@ class InstanceWorkflowObject(object):
 
         iteration = done_transition.iteration + 1
         while old_transitions:
+            complete = False
+            created = False
             for old_transition in old_transitions:
                 cycled_path = (
                     old_transition.source_state,
                     old_transition.destination_state,
                 )
                 if cycled_path in cycled_paths:
-                    return
+                    complete = True
+                    continue
                 else:
+                    created = True
                     cycled_paths.add(cycled_path)
 
                 cycled_transition = Transition.objects.create(
@@ -285,6 +289,9 @@ class InstanceWorkflowObject(object):
                     )
                     cycled_approval.permissions.set(old_approval.permissions.all())
                     cycled_approval.groups.set(old_approval.groups.all())
+
+            if complete and not created:
+                break
 
             old_transitions = self._get_transition_images(old_transitions.values_list("destination_state__pk", flat=True)).exclude(
                 source_state=done_transition.destination_state)
