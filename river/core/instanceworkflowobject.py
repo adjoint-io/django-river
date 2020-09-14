@@ -208,7 +208,7 @@ class InstanceWorkflowObject(object):
             source_state=done_transition.destination_state
         )
 
-        return qs.filter(status=DONE).count() > 0 and qs.filter(status=PENDING).count() == 0
+        return qs.filter(status=DONE).count() > 0
 
     def _get_transition_images(self, source_states):
         meta_max_iteration = Transition.objects.filter(
@@ -223,7 +223,7 @@ class InstanceWorkflowObject(object):
         )
 
     def _re_create_cycled_path(self, done_transition):
-        old_transitions = self._get_transition_images([done_transition.destination_state.pk])
+        old_transitions = self._get_transition_images([done_transition.destination_state.pk]).filter(status=DONE)
 
         iteration = done_transition.iteration + 1
         regenerated_transitions = set()
